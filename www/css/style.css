@@ -1,0 +1,55 @@
+/* Empty. Add your own CSS if you like */
+.img-responsive{
+	max-width: 100%;
+}
+.list h4{
+	font-size: 22px;
+	margin-top: 10px;
+	text-align: right;
+}
+.list h5{
+	font-size: 15px;
+	margin-bottom: 0
+}
+.list i{
+	font-style: italic
+}
+.bool.on{
+	background-color: #a2dcb3;
+}
+.bool{
+	background-color: none;
+}
+
+.list .qualif0{
+	color:#72ff72;
+}
+.list .qualif1{
+	color:orange;
+}
+
+.list .qualif2{
+	color:cyan;
+}
+
+#login_view span{
+	color:#fff;
+}
+
+#login_view input[type="text"],#login_view input[type="password"],#login_view input[type="number"]{
+	color:#d2d2d2;
+}
+
+#valores_view .list .item.item-accordion {
+  line-height: 38px;
+  padding-top: 5px;
+  padding-bottom: 0;
+  transition: 0.09s all linear;
+}
+#valores_view .list .item.item-accordion.ng-hide {
+  line-height: 0px;
+}
+#valores_view .list .item.item-accordion.ng-hide-add,
+#valores_view .list .item.item-accordion.ng-hide-remove {
+  display: block !important;
+}
