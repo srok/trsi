@@ -206,15 +206,25 @@ SOAPClient._loadWsdl = function(url, method, parameters, async, callback)
         xmlHttp.withCredentials = true;
         xmlHttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     }
+
     if(async)
     {
         xmlHttp.onreadystatechange = function()
         {
-            if(xmlHttp.readyState == 4)
-                SOAPClient._onLoadWsdl(url, method, parameters, async, callback, xmlHttp);
+            if(xmlHttp.readyState == 4){
+                if(xmlHttp.status === 200){  //check if "OK" (200)
+                     SOAPClient._onLoadWsdl(url, method, parameters, async, callback, xmlHttp);
+                } else {
+                    callback('net_error');
+                    return false;
+                }
+               
+            }
         }
     }
     xmlHttp.send(null);
+
+
     if (!async)
         return SOAPClient._onLoadWsdl(url, method, parameters, async, callback, xmlHttp);
 }
@@ -226,6 +236,13 @@ SOAPClient._onLoadWsdl = function(url, method, parameters, async, callback, req)
 }
 SOAPClient._sendSoapRequest = function(url, method, parameters, async, callback, wsdl)
 {
+    
+       /* if(wsdl==null){
+           // callback('net_error');
+            return false;
+        }*/
+  
+
     // get namespace
     var ns = (typeof wsdl.documentElement.attributes["targetNamespace"] == "undefined") ? wsdl.documentElement.attributes.getNamedItem("targetNamespace").nodeValue : wsdl.documentElement.attributes["targetNamespace"].value;
     ns='';

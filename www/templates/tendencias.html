@@ -1,16 +1,26 @@
 <ion-view view-title="Tendencias">
   <ion-content>
-  <br><br>
-    <canvas id="line" class="chart chart-line" chart-data="data" chart-labels="labels" chart-series="series" chart-options="options" chart-dataset-override="datasetOverride" chart-click="onClick">
+<br>
+    <canvas ng-if="items.length" id="line" class="chart chart-line" chart-data="data" chart-labels="labels" chart-series="series" chart-options="options" chart-dataset-override="datasetOverride" chart-click="onClick">
 </canvas>
 
+<ion-item ng-show="!items.length">No hay datos para mostrar en el intervalo <br>seleccionado.</ion-item>
+<div class="button-bar">
+  <a class="button button-dark" ng-click="back(9)"><i class="icon ion-ios-arrow-back"></i><i class="icon ion-ios-arrow-back"></i></a>
+  <a class="button button-dark" ng-click="back(1)"><i class="icon ion-ios-arrow-back"></i></a>
+  <a class="button button-dark" ng-click="zoomout()"><i class="icon ion-ios-minus-outline"></i></a>
+  <a class="button button-dark" ng-click="zoomin()"><i class="icon ion-ios-plus-outline"></i></a>
+  <a class="button button-dark" ng-click="ff(1)"><i class="icon ion-ios-arrow-forward"></i></a>
+  <a class="button button-dark" ng-click="ff(9)"><i class="icon ion-ios-arrow-forward"></i><i class="icon ion-ios-arrow-forward"></i></a>
+</div>
 <div class="row">
   <div class="col">
   	<div class="list">
-  		 <div class="item item-divider">
+  		<!--  <div class="item item-divider">
          Desde
-        </div>
+        </div> -->
 	  <div class="item item-input-inset">
+	  <span>Desde&nbsp;</span>
 	    <label class="item-input-wrapper">
 	      <input type="date" placeholder="Fecha" ng-model="tendencias.fecha_from">
 	    </label>
@@ -19,10 +29,11 @@
 	      <input type="time" placeholder="Hora"  ng-model="tendencias.hora_from">
 	    </label>
 	  </div>
-	  <div class="item item-divider">
+	 <!--  <div class="item item-divider">
          Hasta
-        </div>
+        </div> -->
 	  <div class="item item-input-inset">
+	  <span>Hasta&nbsp;</span>
 	    <label class="item-input-wrapper">
 	      <input type="date" placeholder="Fecha" ng-model="tendencias.fecha_to">
 	    </label>
@@ -34,6 +45,7 @@
 	  <button class="button button-block button-calm" ng-click="loadTendencias()">
 	  Actualizar
 	</button>
+	
 
 	</div>
   </div> 

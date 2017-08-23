@@ -4,23 +4,23 @@
 
     <div ng-repeat="grupo in valores_agrupados">
     
-        <div class="item item-divider" ng-click="toggleGroup(grupo)" ng-class="{active: isGroupShown(grupo)}">
+        <div class="item item-divider" ng-click="toggleGroup(grupo)" ng-class="{active: isGroupShown(grupo)">
           <i class="icon" ng-class="isGroupShown(grupo) ? 'ion-minus' : 'ion-plus'"></i>
-            &nbsp;{{grupo.tag_name}}
+            &nbsp;{{grupo.tag_name}}   
         </div>
 
                 <!-- <ion-item ng-repeat="valor in grupo.values" ng-class="{bool:valor.tag_type==68,on:valor.tvalue==1}"> -->
                 <ion-item ng-repeat="valor in grupo.values" ng-show="isGroupShown(grupo)" class="item-accordion">
                   <p>
                     <h5 ng-class="{qualif0:valor.qualifier==0,qualif1:valor.qualifier==1,qualif2:valor.qualifier==2}">{{valor.tag_name}}</h5>
-                    <i>{{valor.tag_desc}}</i>
+                    <i>{{valor.tag_desc}} </i>
                   </p>
                   <!-- <h4 ng-if="valor.tag_type!=68"> -->
                   <h4 ng-if="!valor.fimage">
                   {{valor.tvalue}} {{valor.tag_units}}
                   </h4>
                   <h4 ng-if="valor.fimage">
-                    <img width="40" src="http://trsi.ignorelist.com/{{valor.fimage}}"/>
+                    <img width="40" src="//{{loginData.host}}/{{valor.fimage}}"/>
                   </h4>
                </ion-item>
     </div>

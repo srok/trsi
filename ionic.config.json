@@ -1,4 +1,10 @@
 {
   "name": "app",
-  "app_id": ""
+  "app_id": "",
+  "proxies": [
+    {
+      "path": "/NanoScada.svc?wsdl",
+      "proxyUrl": "http://trsi.ignorelist.com:7021/NanoScada.svc?wsdl"
+    }
+  ]
 }

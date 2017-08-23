@@ -1,0 +1,14 @@
+<ion-view view-title="Mímicos">
+  <ion-content>
+  <ion-list class="list">
+  <ion-item ng-repeat="valor in images">
+        <h5>
+        	{{valor.titulo}}
+        </h5>
+        <h4>
+        	<img width="100%" src="//{{loginData.host}}/images/{{valor.fimage}}"/>
+      	</h4>
+     </ion-item>
+  </ion-list>
+</ion-content>
+</ion-view>

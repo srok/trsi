@@ -9,7 +9,7 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
 .factory("trsiWS", ['$soap',function($soap){
 
-  var base_url = localStorage.getItem('host');
+  var base_url = "http://"+localStorage.getItem('host')+":"+localStorage.getItem('port')+"/NanoScada.svc";
   var refresh_time = localStorage.getItem('refresh_time');
 
   return {
@@ -18,7 +18,9 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
     },
     
     nsOpen: function(){
-      return $soap.post(base_url,"nsOpen",{application: '',client_id:''});
+      response =  $soap.post(base_url,"nsOpen",{application: '',client_id:''});
+
+      return response;
     },
 
     nsRead: function(){
@@ -30,21 +32,30 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
     nsQuery: function(sql){
 
       var args={
-      			nsm__db: 'nanoscada',
-      			nsm__password: 'nanoscada',
-            nsm__server :".",
-            nsm__sql_sentence:sql,
-            nsm__user: 'nanoscada',
-      }
+       nsm__db: 'nanoscada',
+       nsm__password: 'nanoscada',
+       nsm__server :".",
+       nsm__sql_sentence:sql,
+       nsm__user: 'nanoscada',
+     }
 
-      return $soap.post(base_url,"nsQuery",{client_id: '', arg: args});
+     return $soap.post(base_url,"nsQuery",{client_id: '', arg: args});
+   },
+
+   nsGetImages: function(){
+      //console.log(base_url);
+      return $soap.post(base_url,"nsGetImages",{client_id:''});
+
     },
-
+    nsGetNotifications:function(last_notif){
+      console.log('aca:'+last_notif);
+      return $soap.post(base_url,'nsGetNotifications',{client_id:'', arg:last_notif});
+    },
     setHost: function(){
-      base_url = localStorage.getItem('host');
+      base_url = "http://"+localStorage.getItem('host')+":"+localStorage.getItem('port')+"/NanoScada.svc";
 
     },
-   
+
 
     getSortedResult: function(result){
 
@@ -75,13 +86,96 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
       }
 
-          return newArr;
-        }
-      }
-    }])
+      return newArr;
+    }
+  }
 
-.run(function($ionicPlatform) {
-  $ionicPlatform.ready(function() {
+}])
+
+.run(['$ionicPlatform','trsiWS','$timeout','$rootScope',function($ionicPlatform,trsiWS,$timeout,$rootScope) {
+ var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
+ var last_notif='';
+
+
+ $rootScope.getNoti = function(last_notif){
+      //$scope.getData();
+
+
+      $timeout(function() {
+       trsiWS.nsGetNotifications(last_notif).then(function (result){
+                last_notif=result[0];
+                 console.log('getNot:'+last_notif);
+
+                 console.log(result);
+                 ["2017-08-18 12:41:00.200", "1", "6", "Fecha y Hora", "Normalizacion", "TAG", "Descripcion", "Estado", "Area", "18/08/2017 12:41:00.066", null, "MTR_COIL_002", "Prueba de notificaciones 2", "ALARMA", "AREA1", null]
+                  
+                  var cant_notif = response[1];
+                  var cant_fields = response[2];
+                  var notif = new Array();
+                  var j=0;
+
+                  for(i=3;i<=cant_fields*cant_notif*2;i++){
+                    
+                    if(i % 2 != 0){ //titulo
+                       images[j]={
+                          titulo:'',
+                          fimage:''
+                        };
+                      images[j].titulo = response[i];
+                    }else{ //imagen
+                      images[j].fimage = response[i];
+                      j++;
+                    }
+                    
+                  }
+
+                  // cordova.plugins.notification.local.schedule({
+                  //             id: v3,
+                  //             title: tmp_vals[v][v2][v3]['tag_desc'],
+                  //             text: tmp_vals[v][v2][v3]['tag_name']+' '+tmp_vals[v][v2][v3]['tvalue']+' '+tmp_vals[v][v2][v3]['tag_units'],
+                  //             at: Date.now(),
+                  //             data: { meetingId:"#123FG8" }
+                  //         });
+                  //         
+                  $rootScope.getNoti(last_notif);
+       });
+       
+     }, refresh_time);
+    };
+
+    $rootScope.getNoti(last_notif);
+
+    $ionicPlatform.ready(function() {
+    //enable background mode
+    cordova.plugins.backgroundMode.setDefaults({
+      title: 'NanoScada Mobile',
+      text: 'Monitoréo activado',
+    icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
+    color: '#ffce00' // hex format like 'F14F4D'
+
+  });
+
+
+
+    cordova.plugins.backgroundMode.enable();
+    cordova.plugins.backgroundMode.setEnabled(true);
+    console.log('background:'+cordova.plugins.backgroundMode.isActive());
+    //cordova.plugins.backgroundMode.moveToBackground();
+
+    cordova.plugins.backgroundMode.on('activate', function() {
+      console.log('activate');
+    });
+    cordova.plugins.backgroundMode.on('disable', function() {
+      console.log('disable');
+    });
+    cordova.plugins.backgroundMode.on('enable', function() {
+      console.log('enable');
+    });
+    cordova.plugins.backgroundMode.on('deactivate', function() {
+      console.log('deactivate');
+    });
+
+
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
     if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -89,12 +183,13 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
       cordova.plugins.Keyboard.disableScroll(true);
 
     }
-    if (window.StatusBar) {
+    if (window.StatusBar) { 
       // org.apache.cordova.statusbar required
       StatusBar.styleDefault();
     }
+
   });
-})
+  }])
 
 .config(function($stateProvider, $urlRouterProvider) {
 
@@ -143,6 +238,15 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
       }
     }
   })
+  .state('app.mimics', {
+    url: '/mimics',
+    views: {
+      'menuContent': {
+        templateUrl: 'templates/mimics.html',
+        controller: 'MimicsCtrl'
+      }
+    }
+  });
 
   
   // if none of the above states are matched, use this as the fallback

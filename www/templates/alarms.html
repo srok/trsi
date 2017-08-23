@@ -4,10 +4,9 @@
 
    <div class="col">
   	<div class="list">
-  		 <div class="item item-divider">
-         Desde
-        </div>
+  		 
 	  <div class="item item-input-inset">
+	  <span>Desde&nbsp;</span>
 	    <label class="item-input-wrapper">
 	      <input type="date" placeholder="Fecha" ng-model="alarms.fecha_from">
 	    </label>
@@ -16,10 +15,9 @@
 	      <input type="time" placeholder="Hora"  ng-model="alarms.hora_from">
 	    </label>
 	  </div>
-	  <div class="item item-divider">
-         Hasta
-        </div>
+	   
 	  <div class="item item-input-inset">
+	  <span>Hasta&nbsp;</span>
 	    <label class="item-input-wrapper">
 	      <input type="date" placeholder="Fecha" ng-model="alarms.fecha_to">
 	    </label>
@@ -41,6 +39,7 @@
         </h5>
         <h4 ng-if="valor.tag_type!=68">{{valor.tvalue}} {{valor.tag_units}}</h4>
      </ion-item>
+     <ion-item ng-show="!items.length">No hay alarmas para mostrar en el intervalo <br>seleccionado.</ion-item>
 
   </ion-list>
 </ion-content>

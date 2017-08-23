@@ -11,7 +11,8 @@ angular.module('starter.controllers', [])
 
   // Form data for the login modal
   $scope.loginData = {
-    host:localStorage.getItem('host')?localStorage.getItem('host'):'http://trsi.ignorelist.com:7021/NanoScada.svc',
+    host:localStorage.getItem('host')?localStorage.getItem('host'):'trsi.ignorelist.com',
+    port:localStorage.getItem('port')?localStorage.getItem('port'):'7021',
     username:localStorage.getItem('username')?localStorage.getItem('username'):'nanoscada',
     password:localStorage.getItem('password')?localStorage.getItem('password'):'nanoscada',
     refresh_time: localStorage.getItem('refresh_time')?parseInt(localStorage.getItem('refresh_time')):5
@@ -45,6 +46,7 @@ angular.module('starter.controllers', [])
   $scope.doLogin = function() {
 
     localStorage.setItem("host", $scope.loginData.host);
+    localStorage.setItem("port", $scope.loginData.port);
     localStorage.setItem("username", $scope.loginData.username);
     localStorage.setItem("password", $scope.loginData.password);
     localStorage.setItem("refresh_time", $scope.loginData.refresh_time);
@@ -64,28 +66,59 @@ angular.module('starter.controllers', [])
   
 })
 /////////////////////////////////////////////////////////////////////////
-.controller('PlaylistsCtrl', function($scope,$rootScope,trsiWS,$timeout){
+.controller('PlaylistsCtrl', function($scope,$rootScope,trsiWS,$timeout,$ionicPopup){
+
+    $scope.valores_agrupados=[{
+      tag_name:"Cargando..."
+    }];
+
 
   $scope.valores = [
   { 'tag_desc': '' }
   ];
-  $scope.valores_agrupados = [
+  
+
+  $scope.showAlert = function() {
+   var alertPopup = $ionicPopup.alert({
+     title: 'Error de conexión',
+     template: 'Verifique los datos ingresados e intente nuevamente.'
+   });
+
+   alertPopup.then(function(res) {
+     //console.log('Thank you for not eating my delicious ice cream cone');
+   });
+ };
+
+ $scope.valores_agrupados = [
   ];
 
-
-
   $scope.getData= function(){
-    trsiWS.nsOpen().then(function(response){
-   
+    trsiWS.nsOpen().catch(function(response){
+      $scope.showAlert();
+     // $scope.getData();
+    }).then(function(response){
+
       trsiWS.nsRead().then(function(response){
-  
+ 
+
        if($scope.valores_agrupados.length){
         tmp_vals=trsiWS.getSortedResult(response);
         for(var v in tmp_vals) {
           for(var v2 in tmp_vals[v]){
             for(var v3 in tmp_vals[v][v2]){
+                
               for(var v4 in tmp_vals[v][v2][v3]){
-
+                //aca se crean las notificaciones para los que traigan option == na
+                if(tmp_vals[v][v2][v3]['options']=='NA'){
+                 
+                  // cordova.plugins.notification.local.schedule({
+                  //     id: v3,
+                  //     title: tmp_vals[v][v2][v3]['tag_desc'],
+                  //     text: tmp_vals[v][v2][v3]['tag_name']+' '+tmp_vals[v][v2][v3]['tvalue']+' '+tmp_vals[v][v2][v3]['tag_units'],
+                  //     at: Date.now(),
+                  //     data: { meetingId:"#123FG8" }
+                  // });
+                }
                $scope.valores_agrupados[v][v2][v3][v4]=tmp_vals[v][v2][v3][v4];
 
              }
@@ -96,40 +129,53 @@ angular.module('starter.controllers', [])
        $scope.valores_agrupados=trsiWS.getSortedResult(response);
 
      }
-     //  console.log($scope.valores_agrupados);
+      // console.log($scope.valores_agrupados);
      $scope.valores=response;
+      
+      $scope.intervalFunction();
+
    });
     });
   }
 
-  $scope.intervalFunction = function(){
-    $scope.getData();
+    $scope.intervalFunction = function(){
+      //$scope.getData();
 
-    var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
+      var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
 
-    $timeout(function() {
-      $scope.getData();
-      $scope.intervalFunction();
-    }, refresh_time);
-  };
+      $timeout(function() {
+        $scope.getData();
+       // $scope.intervalFunction();
+      }, refresh_time);
+    };
 
   $scope.toggleGroup = function(group) {
-    if ($scope.isGroupShown(group)) {
+
+   /* if ($scope.isGroupShown(group)) {
       $scope.shownGroup = null;
     } else {
       $scope.shownGroup = group;
+    }*/
+  if ($scope.isGroupShown(group)) {
+      group.shownGroup = null;
+    } else {
+      group.shownGroup = 1;
+      //group.shownGroup = group;
     }
+
   };
   $scope.isGroupShown = function(group) {
-    return $scope.shownGroup === group;
+   // return group.shownGroup === group;
+    return group.shownGroup === 1;
   };
   
 
-  $scope.intervalFunction();
+  $scope.getData();
 })
 /////////////////////////////////////////////////////////////////////////
 .controller('TendenciasCtrl', function($scope,trsiWS,$timeout) {
   
+
 
   var d = new Date();
   d.setHours(d.getHours() - 1);
@@ -141,25 +187,126 @@ angular.module('starter.controllers', [])
     hora_to:new Date(),
   };
 
+  $scope.from = toDateTime($scope.tendencias.fecha_from,$scope.tendencias.hora_from);
+  $scope.to= toDateTime($scope.tendencias.fecha_to,$scope.tendencias.hora_to);
+
+  $scope.zoomin=function(){
+    
+    var from = new Date($scope.from);
+    var to = new Date($scope.to);
+
+    var ns_begin_time = from * 1;
+    var ns_end_time = to * 1;
+
+    var ns_display_time = ns_end_time - ns_begin_time;
+    
+    ns_begin_time = ns_begin_time + (ns_display_time / 8);
+    ns_end_time = ns_end_time - (ns_display_time / 8);
+    
+    $scope.from= toDateTime(new Date(ns_begin_time),new Date(ns_begin_time));
+    $scope.to= toDateTime(new Date(ns_end_time),new Date(ns_end_time));
+
+     $scope.tendencias={
+      fecha_from:new Date(ns_begin_time),
+      fecha_to:new Date(ns_end_time),
+      hora_from:new Date(ns_begin_time),
+      hora_to:new Date(ns_end_time),
+    };
+
+     $scope.loadTendencias();
+  }
+
+  $scope.zoomout=function(){
+    
+    var from = new Date($scope.from);
+    var to = new Date($scope.to);
+
+    var ns_begin_time = from * 1;
+    var ns_end_time = to * 1;
+
+    var ns_display_time = ns_end_time - ns_begin_time;
+    
+    ns_begin_time = ns_begin_time - (ns_display_time / 8);
+    ns_end_time = ns_end_time + (ns_display_time / 8);
+    
+    $scope.from= toDateTime(new Date(ns_begin_time),new Date(ns_begin_time));
+    $scope.to= toDateTime(new Date(ns_end_time),new Date(ns_end_time));
+
+     $scope.tendencias={
+      fecha_from:new Date(ns_begin_time),
+      fecha_to:new Date(ns_end_time),
+      hora_from:new Date(ns_begin_time),
+      hora_to:new Date(ns_end_time),
+    };
+
+     $scope.loadTendencias();
+  }
+
+  $scope.back=function(t){
+    var from = new Date($scope.from);
+    var to = new Date($scope.to);
+
+    var ns_begin_time = from * 1;
+    var ns_end_time = to * 1;
+
+    var ns_display_time = ns_end_time - ns_begin_time;
+
+    ns_begin_time = ns_begin_time - (ns_display_time * t / 12);
+    ns_end_time = ns_begin_time + ns_display_time;
+
+    $scope.from= toDateTime(new Date(ns_begin_time),new Date(ns_begin_time));
+    $scope.to= toDateTime(new Date(ns_end_time),new Date(ns_end_time));
+
+     $scope.tendencias={
+      fecha_from:new Date(ns_begin_time),
+      fecha_to:new Date(ns_end_time),
+      hora_from:new Date(ns_begin_time),
+      hora_to:new Date(ns_end_time),
+    };
+
+    $scope.loadTendencias();
+  }
+
+  $scope.ff=function(t){
+    var from = new Date($scope.from);
+    var to = new Date($scope.to);
+
+    var ns_begin_time = from * 1;
+    var ns_end_time = to * 1;
+
+    var ns_display_time = ns_end_time - ns_begin_time;
+
+    if(ns_end_time < (new Date()*1)){
+      ns_begin_time = ns_begin_time + (ns_display_time * t / 12);
+      ns_end_time = ns_begin_time + ns_display_time;  
+    }
+
+  
+    $scope.from= toDateTime(new Date(ns_begin_time),new Date(ns_begin_time));
+    $scope.to= toDateTime(new Date(ns_end_time),new Date(ns_end_time));
+
+
+    $scope.tendencias={
+      fecha_from:new Date(ns_begin_time),
+      fecha_to:new Date(ns_end_time),
+      hora_from:new Date(ns_begin_time),
+      hora_to:new Date(ns_end_time),
+    };
+
+    $scope.loadTendencias();
+  }
   
 
   $scope.loadTendencias=function(){
-    
-    var d = new Date($scope.tendencias.fecha_from);
-    var fecha_from = d.getDate()  + "/" + (d.getMonth()+1) + "/" + d.getFullYear() ;
+  
+  $scope.from = toDateTime($scope.tendencias.fecha_from,$scope.tendencias.hora_from);
+  $scope.to= toDateTime($scope.tendencias.fecha_to,$scope.tendencias.hora_to);
 
-    var d = new Date($scope.tendencias.hora_from);
-    var hora_from = d.getHours()  + ":" + (d.getMinutes()) + ":" + d.getSeconds() ;
+      $scope.items=[{
+      tvalue:"Cargando..."
+    }];
 
-    var from =fecha_from+" "+hora_from;
 
-    var d = new Date($scope.tendencias.fecha_to);
-    var fecha_to = d.getDate()  + "/" + (d.getMonth()+1) + "/" + d.getFullYear() ;
-
-    var d = new Date($scope.tendencias.hora_to);
-    var hora_to = d.getHours()  + ":" + (d.getMinutes()) + ":" + d.getSeconds() ;
-
-    var to =fecha_to+" "+hora_to;
 
     var query = "SELECT  TOP 300 sectime,"+
     "CONVERT(varchar(32), date_time, 103) + ' ' + CONVERT(varchar(32), date_time, 108) As 'Fecha y Hora',"+
@@ -167,9 +314,9 @@ angular.module('starter.controllers', [])
     "M_CALC2 As 'Cuadrada',"+
     "M_CALC3 As 'Triangular',"+
     "M_CALC4 As 'Senoidal'"+
-  "FROM trend_log_10sec "+
-  "WHERE date_time >= CONVERT(datetime, '"+from+"', 103) AND"+
-   " date_time <= CONVERT(datetime, '"+to+"', 103)"+
+  " FROM trend_log_10sec "+
+  "WHERE date_time >= '"+$scope.from+"' AND"+ //CONVERT(datetime, '"+ $scope.from+"', 103)
+   " date_time <= '"+$scope.to+"'"+
   "ORDER BY date_time ASC";
 
   trsiWS.nsQuery(query).then(
@@ -227,9 +374,9 @@ angular.module('starter.controllers', [])
             tri
           ];
           $scope.onClick = function (points, evt) {
-            console.log(points, evt);
+           // console.log(points, evt);
           };
-          $scope.datasetOverride = [{ yAxisID: 'y-axis-1' ,pointRadius:0}, { yAxisID: 'y-axis-2',pointRadius:0 },{pointRadius:0},{pointRadius:0}];
+          $scope.datasetOverride = [{ yAxisID: 'y-axis-1' ,pointRadius:0, backgroundColor:null},{pointRadius:0, backgroundColor:null},{pointRadius:0, backgroundColor:null},{pointRadius:0, backgroundColor:null}];
           
           $scope.options = {
 
@@ -242,12 +389,6 @@ angular.module('starter.controllers', [])
                   type: 'linear',
                   display: true,
                   position: 'left'
-                },
-                {
-                  id: 'y-axis-2',
-                  type: 'linear',
-                  display: true,
-                  position: 'right'
                 }
               ]
             }
@@ -270,6 +411,8 @@ angular.module('starter.controllers', [])
       var d = new Date();
       d.setHours(d.getHours() - 2);
 
+
+
       $scope.alarms={
         fecha_from:new Date(),
         fecha_to:new Date(),
@@ -279,6 +422,10 @@ angular.module('starter.controllers', [])
 
 
     $scope.loadAlarms=function(){
+
+      $scope.items=[{
+      tvalue:"Cargando..."
+    }];
 
       var d = new Date($scope.alarms.fecha_from);
       var fecha_from = d.getDate()  + "/" + (d.getMonth()+1) + "/" + d.getFullYear() ;
@@ -302,6 +449,8 @@ angular.module('starter.controllers', [])
 
   trsiWS.nsQuery(query).then(
     function(response){
+
+
 
       var header = new Array();
       var items = new Array();
@@ -338,4 +487,44 @@ angular.module('starter.controllers', [])
     $scope.loadAlarms();
   
   
-});
+})
+
+.controller('MimicsCtrl', function($scope,trsiWS,$timeout) {
+ trsiWS.nsGetImages().then(function(response){
+
+  var cant = response[0];
+  var images = new Array();
+  var j=0;
+
+  for(i=1;i<=cant*2;i++){
+    
+    if(i % 2 != 0){ //titulo
+       images[j]={
+          titulo:'',
+          fimage:''
+        };
+      images[j].titulo = response[i];
+    }else{ //imagen
+      images[j].fimage = response[i];
+      j++;
+    }
+    
+  }
+
+  $scope.images=images;
+
+ })
+})
+;
+
+
+function toDateTime($fecha,$hora){
+    var d = new Date($fecha);
+    var fecha = (d.getMonth()+1) + "-" +d.getDate()  + "-" +  d.getFullYear() ;
+
+    var d = new Date($hora);
+    var hora = d.getHours()  + ":" + (d.getMinutes()) + ":" + d.getSeconds() ;
+
+    return fecha+" "+hora;
+
+}

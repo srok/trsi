@@ -53,3 +53,7 @@
 #valores_view .list .item.item-accordion.ng-hide-remove {
   display: block !important;
 }
+
+.popup-container.active .popup{
+	background-color:#333;
+}
