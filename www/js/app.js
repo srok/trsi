@@ -93,9 +93,17 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 }])
 
 .run(['$ionicPlatform','trsiWS','$timeout','$rootScope',function($ionicPlatform,trsiWS,$timeout,$rootScope) {
- var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
- var last_notif='';
+                  var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
+                var last_notif='';
 
+ $rootScope.parseNotification=function (fields,data){
+    var keys = Object.keys( data );
+    notificacion='';
+    for(i=0;i<fields.length;i++){
+      notificacion+=fields[i]+':'+data[keys[i]]+'\r\n';
+    }
+    return notificacion;
+ }
 
  $rootScope.getNoti = function(last_notif){
       //$scope.getData();
@@ -103,40 +111,63 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
       $timeout(function() {
        trsiWS.nsGetNotifications(last_notif).then(function (result){
-                last_notif=result[0];
-                 console.log('getNot:'+last_notif);
+                 
+                console.log(result);
+                 
 
-                 console.log(result);
-                 ["2017-08-18 12:41:00.200", "1", "6", "Fecha y Hora", "Normalizacion", "TAG", "Descripcion", "Estado", "Area", "18/08/2017 12:41:00.066", null, "MTR_COIL_002", "Prueba de notificaciones 2", "ALARMA", "AREA1", null]
+                  var last_notif=result[0];
+                 
                   
-                  var cant_notif = response[1];
-                  var cant_fields = response[2];
+                  var cant_notif = parseInt(result[1]);
+                  var cant_fields = parseInt(result[2]);
                   var notif = new Array();
                   var j=0;
+                  //levanto los campos
+                  var fields= new Array();
+                  var offset_notificaciones=cant_fields+3;
 
-                  for(i=3;i<=cant_fields*cant_notif*2;i++){
-                    
-                    if(i % 2 != 0){ //titulo
-                       images[j]={
-                          titulo:'',
-                          fimage:''
-                        };
-                      images[j].titulo = response[i];
-                    }else{ //imagen
-                      images[j].fimage = response[i];
+                  for(i=3;i<offset_notificaciones;i++){
+                    fields.push(result[i]);                   
+                  }
+                 
+                  result.splice(0,3+cant_fields);
+
+                  var Notificaciones= new Array();
+                  var j=-1;
+                  for (i=0;i<=cant_notif*cant_fields;i++){
+                    index=((i)%cant_fields);
+                    if(!index){
+                      if(Notificaciones[j])
+                      Notificaciones[j]=Notificaciones[j].replace(/(^,)|(,$)/g, "")+'}';
+
                       j++;
+                      Notificaciones[j]='{';
                     }
-                    
+                    Notificaciones[j]=Notificaciones[j]+'"'+[fields[index]]+'":"'+result[i]+'",';
+
+
+                  }
+                
+               
+                  var notificaciones_parseadas=new Array();
+                  for(i=0;i<Notificaciones.length-1;i++){
+                    notificaciones_parseadas[i]=JSON.parse(Notificaciones[i]);
+                  }
+                  console.log(notificaciones_parseadas);
+
+                  for(n=0;n<notificaciones_parseadas.length;n++){
+                    console.log($rootScope.parseNotification(fields,notificaciones_parseadas[n]));
+                    cordova.plugins.notification.local.schedule({
+                       id: Math.ceil(Math.random()*100),
+                       title: notificaciones_parseadas[n].Descripcion,
+                       text: $rootScope.parseNotification(fields,notificaciones_parseadas[n]),
+                       at: Date.now(),
+                       data: { meetingId:"#123F"+n }
+                    });
                   }
 
-                  // cordova.plugins.notification.local.schedule({
-                  //             id: v3,
-                  //             title: tmp_vals[v][v2][v3]['tag_desc'],
-                  //             text: tmp_vals[v][v2][v3]['tag_name']+' '+tmp_vals[v][v2][v3]['tvalue']+' '+tmp_vals[v][v2][v3]['tag_units'],
-                  //             at: Date.now(),
-                  //             data: { meetingId:"#123FG8" }
-                  //         });
-                  //         
+
+
                   $rootScope.getNoti(last_notif);
        });
        
@@ -155,6 +186,7 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
   });
 
+    // cordova.plugins.autoStart.enable();
 
 
     cordova.plugins.backgroundMode.enable();
