@@ -15,7 +15,8 @@ angular.module('starter.controllers', [])
     port:localStorage.getItem('port')?localStorage.getItem('port'):'7021',
     username:localStorage.getItem('username')?localStorage.getItem('username'):'nanoscada',
     password:localStorage.getItem('password')?localStorage.getItem('password'):'nanoscada',
-    refresh_time: localStorage.getItem('refresh_time')?parseInt(localStorage.getItem('refresh_time')):5
+    refresh_time: localStorage.getItem('refresh_time')?parseInt(localStorage.getItem('refresh_time')):5,
+    refresh_time_notification: localStorage.getItem('refresh_time_notification')?parseInt(localStorage.getItem('refresh_time_notification')):5
   };
 
   //http://trsi.ignorelist.com:7021/NanoScada.svc
@@ -50,6 +51,7 @@ angular.module('starter.controllers', [])
     localStorage.setItem("username", $scope.loginData.username);
     localStorage.setItem("password", $scope.loginData.password);
     localStorage.setItem("refresh_time", $scope.loginData.refresh_time);
+    localStorage.setItem("refresh_time_notification", $scope.loginData.refresh_time_notification);
 
     trsiWS.setHost();
 
@@ -78,23 +80,14 @@ angular.module('starter.controllers', [])
   ];
   
 
-  $scope.showAlert = function() {
-   var alertPopup = $ionicPopup.alert({
-     title: 'Error de conexión',
-     template: 'Verifique los datos ingresados e intente nuevamente.'
-   });
-
-   alertPopup.then(function(res) {
-     //console.log('Thank you for not eating my delicious ice cream cone');
-   });
- };
+  
 
  $scope.valores_agrupados = [
   ];
 
   $scope.getData= function(){
     trsiWS.nsOpen().catch(function(response){
-      $scope.showAlert();
+      $rootScope.showAlert();
      // $scope.getData();
     }).then(function(response){
 
@@ -489,33 +482,47 @@ angular.module('starter.controllers', [])
   
 })
 
-.controller('MimicsCtrl', function($scope,trsiWS,$timeout) {
- trsiWS.nsGetImages().then(function(response){
+.controller('MimicsCtrl', function($rootScope,$scope,trsiWS,$timeout) {
+  
+  $scope.getData= function(){
+    $scope.images=[{
+    cargando:1,
+    titulo:'',
+    fimage:''
+  }];
+       trsiWS.nsGetImages().catch(function(response){
 
-  var cant = response[0];
-  var images = new Array();
-  var j=0;
+      $rootScope.showAlert();
+     
+    }).then(function(response){
 
-  for(i=1;i<=cant*2;i++){
-    
-    if(i % 2 != 0){ //titulo
-       images[j]={
-          titulo:'',
-          fimage:''
-        };
-      images[j].titulo = response[i];
-    }else{ //imagen
-      images[j].fimage = response[i];
-      j++;
-    }
-    
-  }
+        var cant = response[0];
+        var images = new Array();
+        var j=0;
 
-  $scope.images=images;
+        for(i=1;i<=cant*2;i++){
+          
+          if(i % 2 != 0){ //titulo
+             images[j]={
+                titulo:'',
+                fimage:''
+              };
+            images[j].titulo = response[i];
+          }else{ //imagen
+            images[j].fimage = response[i];
+            j++;
+          }
+          
+        }
 
- })
-})
-;
+        $scope.images=images;
+
+       });
+}
+
+$scope.getData();
+});
+
 
 
 function toDateTime($fecha,$hora){

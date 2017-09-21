@@ -48,7 +48,6 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
     },
     nsGetNotifications:function(last_notif){
-      console.log('aca:'+last_notif);
       return $soap.post(base_url,'nsGetNotifications',{client_id:'', arg:last_notif});
     },
     setHost: function(){
@@ -92,9 +91,22 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
 }])
 
-.run(['$ionicPlatform','trsiWS','$timeout','$rootScope',function($ionicPlatform,trsiWS,$timeout,$rootScope) {
-                  var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
-                var last_notif='';
+.run(['$ionicPlatform','trsiWS','$timeout','$rootScope','$ionicPopup',function($ionicPlatform,trsiWS,$timeout,$rootScope,$ionicPopup) {
+  var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
+  var refresh_time_notification = parseInt(localStorage.getItem('refresh_time_notification'))*1000;
+var last_notif='';
+
+
+$rootScope.showAlert = function() {
+   var alertPopup = $ionicPopup.alert({
+     title: 'Error de conexión',
+     template: 'Verifique los datos ingresados e intente nuevamente.'
+   });
+
+   alertPopup.then(function(res) {
+     //console.log('Thank you for not eating my delicious ice cream cone');
+   });
+ };
 
  $rootScope.parseNotification=function (fields,data){
     var keys = Object.keys( data );
@@ -110,9 +122,14 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
 
       $timeout(function() {
-       trsiWS.nsGetNotifications(last_notif).then(function (result){
+       trsiWS.nsGetNotifications(last_notif).catch(function(response){
+        console.log('sin conexion');
+        console.log(response);
+        $rootScope.showAlert();
+        $rootScope.getNoti(last_notif);
+    }).then(function (result){
                  
-                console.log(result);
+                
                  
 
                   var last_notif=result[0];
@@ -171,13 +188,18 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
                   $rootScope.getNoti(last_notif);
        });
        
-     }, refresh_time);
+     }, refresh_time_notification);
     };
 
     $rootScope.getNoti(last_notif);
 
     $ionicPlatform.ready(function() {
+      
+  cordova.plugins.autoStart.enable();
+      
+
     //enable background mode
+    
     cordova.plugins.backgroundMode.setDefaults({
       title: 'NanoScada Mobile',
       text: 'Monitoréo activado',
@@ -186,11 +208,30 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
   });
 
-    // cordova.plugins.autoStart.enable();
+    
 
 
     cordova.plugins.backgroundMode.enable();
     cordova.plugins.backgroundMode.setEnabled(true);
+    cordova.plugins.backgroundMode.excludeFromTaskList();
+   // cordova.plugins.backgroundMode.overrideBackButton();
+   // 
+   // Disable BACK button on home
+  $ionicPlatform.registerBackButtonAction(function(event) {
+    if (true) { // your check here
+      cordova.plugins.backgroundMode.moveToBackground();
+      // $ionicPopup.confirm({
+      //   title: 'Advertencia',
+      //   template: '¿Seguro quiere cerrar la app y dejar de recibir notificaciones?'
+      // }).then(function(res) {
+      //   if (res) {
+      //     ionic.Platform.exitApp();
+      //   }else{
+
+      //   }
+      // })
+    }
+  }, 100);
     console.log('background:'+cordova.plugins.backgroundMode.isActive());
     //cordova.plugins.backgroundMode.moveToBackground();
 

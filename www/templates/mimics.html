@@ -1,13 +1,30 @@
 <ion-view view-title="Mímicos">
   <ion-content>
   <ion-list class="list">
+  <button class="button button-block button-calm" ng-click="getData()">
+      Actualizar
+    </button>
+  
+
   <ion-item ng-repeat="valor in images">
-        <h5>
-        	{{valor.titulo}}
-        </h5>
-        <h4>
-        	<img width="100%" src="http://{{loginData.host}}/images/{{valor.fimage}}"/>
-      	</h4>
+      <div ng-if="valor.cargando">Cargando...</div>
+      <div ng-if="valor.titulo">
+          <h5>
+          	{{valor.titulo}}
+          </h5>
+          <h4>
+          <ion-scroll 
+                  zooming="true"
+                  direction="xy"
+                  delegate-handle="zoom-pane"
+                  class="zoom-pane"
+                  min-zoom="1"
+                  max-zoom="15"
+                  overflow-scroll="false">
+          	<img width="100%" src="http://{{loginData.host}}/images/{{valor.fimage}}"/>
+            </ion-scroll>
+        	</h4>
+      </div>
      </ion-item>
   </ion-list>
 </ion-content>
