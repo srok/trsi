@@ -11,6 +11,10 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 
   var base_url = "http://"+localStorage.getItem('host')+":"+localStorage.getItem('port')+"/NanoScada.svc";
   var refresh_time = localStorage.getItem('refresh_time');
+  var application = localStorage.getItem('appId');
+  var client_id = localStorage.getItem('clientId');
+  var username = localStorage.getItem('username');
+  var password = localStorage.getItem('password');
 
   return {
     HelloWorld: function(){
@@ -18,37 +22,37 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
     },
     
     nsOpen: function(){
-      response =  $soap.post(base_url,"nsOpen",{application: '',client_id:''});
+      response =  $soap.post(base_url,"nsOpen",{application: application,client_id:client_id,password:password,user:username});
 
       return response;
     },
 
     nsRead: function(){
       //console.log(base_url);
-      return $soap.post(base_url,"nsRead",{client_id:''});
+      return $soap.post(base_url,"nsRead",{client_id:client_id});
 
     },
 
     nsQuery: function(sql){
 
       var args={
-       nsm__db: 'nanoscada',
-       nsm__password: 'nanoscada',
+       nsm__db: username,//'nanoscada',
+       nsm__password: password,//'nanoscada',
        nsm__server :".",
        nsm__sql_sentence:sql,
-       nsm__user: 'nanoscada',
+       nsm__user: username,//'nanoscada',
      }
 
-     return $soap.post(base_url,"nsQuery",{client_id: '', arg: args});
+     return $soap.post(base_url,"nsQuery",{client_id: client_id, arg: args});
    },
 
    nsGetImages: function(){
       //console.log(base_url);
-      return $soap.post(base_url,"nsGetImages",{client_id:''});
+      return $soap.post(base_url,"nsGetImages",{client_id:client_id});
 
     },
     nsGetNotifications:function(last_notif){
-      return $soap.post(base_url,'nsGetNotifications',{client_id:'', arg:last_notif});
+      return $soap.post(base_url,'nsGetNotifications',{client_id:client_id, arg:last_notif});
     },
     setHost: function(){
       base_url = "http://"+localStorage.getItem('host')+":"+localStorage.getItem('port')+"/NanoScada.svc";
