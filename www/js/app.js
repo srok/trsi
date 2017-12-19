@@ -22,6 +22,7 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
     },
     
     nsOpen: function(){
+      console.log({application: application,client_id:client_id,password:password,user:username});
       response =  $soap.post(base_url,"nsOpen",{application: application,client_id:client_id,password:password,user:username});
 
       return response;
@@ -101,15 +102,23 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 var last_notif='';
 
 
-$rootScope.showAlert = function() {
-   var alertPopup = $ionicPopup.alert({
-     title: 'Error de conexión',
-     template: 'Verifique los datos ingresados e intente nuevamente.'
-   });
+$rootScope.salir=function(){
+  ionic.Platform.exitApp();
+}
 
-   alertPopup.then(function(res) {
-     //console.log('Thank you for not eating my delicious ice cream cone');
-   });
+$rootScope.showAlert = function() {
+   if ($ionicPopup._popupStack.length == 0) {
+       
+    
+         var alertPopup = $ionicPopup.alert({
+           title: 'Error de conexión',
+           template: 'Verifique los datos ingresados e intente nuevamente.'
+         });
+
+         alertPopup.then(function(res) {
+            
+         });
+     }
  };
 
  $rootScope.parseNotification=function (fields,data){

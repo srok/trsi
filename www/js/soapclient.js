@@ -455,6 +455,7 @@ SOAPClient._getXmlHttp = function()
         if(window.XMLHttpRequest)
         {
             var req = new XMLHttpRequest();
+            req.timeout=4000;
             // some versions of Moz do not support the readyState property and the onreadystate event so we patch it!
             if(req.readyState == null)
             {

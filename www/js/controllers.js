@@ -23,20 +23,20 @@ angular.module('starter.controllers', [])
 
   //http://trsi.ignorelist.com:7021/NanoScada.svc
   $ionicPlatform.ready(function() {
-
+    if(window.plugins){
     window.plugins.uniqueDeviceID.get(function (id){//success
-      console.log('getid');
-      console.log(id);
-
+     
       $scope.loginData.clientId=id;
-      localStorage.setItem("appId", id);
+
+      localStorage.setItem("clientId", id);
+      $scope.$apply();
     }, function (e){//fail
       console.log('getidFail');
-
       console.log(e);
+      ionic.Platform.exitApp();
     });
-
-  });
+  }
+});
   // Create the login modal that we will use later
   $ionicModal.fromTemplateUrl('templates/login.html', {
     scope: $scope

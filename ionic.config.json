@@ -6,5 +6,9 @@
       "path": "/NanoScada.svc?wsdl",
       "proxyUrl": "http://trsi.ignorelist.com:7021/NanoScada.svc?wsdl"
     }
-  ]
+  ],
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic1"
 }
