@@ -45,5 +45,5 @@
     <platform name="ios" />
     <platform name="winphone" />
     <allow-navigation href="http://192.168.1.117:8100" />
-    <engine name="windows" spec="~4.4.3" />
+    
 </widget>
