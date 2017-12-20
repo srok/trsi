@@ -99,38 +99,38 @@ angular.module('starter', ['ionic', 'starter.controllers','angularSoap','chart.j
 .run(['$ionicPlatform','trsiWS','$timeout','$rootScope','$ionicPopup',function($ionicPlatform,trsiWS,$timeout,$rootScope,$ionicPopup) {
   var refresh_time = parseInt(localStorage.getItem('refresh_time'))*1000;
   var refresh_time_notification = parseInt(localStorage.getItem('refresh_time_notification'))*1000;
-var last_notif='';
+  var last_notif='';
 
 
-$rootScope.salir=function(){
-  ionic.Platform.exitApp();
-}
+  $rootScope.salir=function(){
+    ionic.Platform.exitApp();
+  }
 
-$rootScope.showAlert = function() {
+  $rootScope.showAlert = function() {
    if ($ionicPopup._popupStack.length == 0) {
-       
-    
-         var alertPopup = $ionicPopup.alert({
-           title: 'Error de conexión',
-           template: 'Verifique los datos ingresados e intente nuevamente.'
-         });
 
-         alertPopup.then(function(res) {
-            
-         });
-     }
+
+     var alertPopup = $ionicPopup.alert({
+       title: 'Error de conexión',
+       template: 'Verifique los datos ingresados e intente nuevamente.'
+     });
+
+     alertPopup.then(function(res) {
+
+     });
+   }
  };
 
  $rootScope.parseNotification=function (fields,data){
-    var keys = Object.keys( data );
-    notificacion='';
-    for(i=0;i<fields.length;i++){
-      notificacion+=fields[i]+':'+data[keys[i]]+'\r\n';
-    }
-    return notificacion;
- }
+  var keys = Object.keys( data );
+  notificacion='';
+  for(i=0;i<fields.length;i++){
+    notificacion+=fields[i]+':'+data[keys[i]]+'\r\n';
+  }
+  return notificacion;
+}
 
- $rootScope.getNoti = function(last_notif){
+$rootScope.getNoti = function(last_notif){
       //$scope.getData();
 
 
@@ -140,18 +140,18 @@ $rootScope.showAlert = function() {
         console.log(response);
         $rootScope.showAlert();
         $rootScope.getNoti(last_notif);
-    }).then(function (result){
-                 
-                
-                 
+      }).then(function (result){
 
-                  var last_notif=result[0];
-                 
-                  
-                  var cant_notif = parseInt(result[1]);
-                  var cant_fields = parseInt(result[2]);
-                  var notif = new Array();
-                  var j=0;
+
+
+
+        var last_notif=result[0];
+
+
+        var cant_notif = parseInt(result[1]);
+        var cant_fields = parseInt(result[2]);
+        var notif = new Array();
+        var j=0;
                   //levanto los campos
                   var fields= new Array();
                   var offset_notificaciones=cant_fields+3;
@@ -159,7 +159,7 @@ $rootScope.showAlert = function() {
                   for(i=3;i<offset_notificaciones;i++){
                     fields.push(result[i]);                   
                   }
-                 
+
                   result.splice(0,3+cant_fields);
 
                   var Notificaciones= new Array();
@@ -168,7 +168,7 @@ $rootScope.showAlert = function() {
                     index=((i)%cant_fields);
                     if(!index){
                       if(Notificaciones[j])
-                      Notificaciones[j]=Notificaciones[j].replace(/(^,)|(,$)/g, "")+'}';
+                        Notificaciones[j]=Notificaciones[j].replace(/(^,)|(,$)/g, "")+'}';
 
                       j++;
                       Notificaciones[j]='{';
@@ -177,8 +177,8 @@ $rootScope.showAlert = function() {
 
 
                   }
-                
-               
+
+
                   var notificaciones_parseadas=new Array();
                   for(i=0;i<Notificaciones.length-1;i++){
                     notificaciones_parseadas[i]=JSON.parse(Notificaciones[i]);
@@ -187,31 +187,34 @@ $rootScope.showAlert = function() {
 
                   for(n=0;n<notificaciones_parseadas.length;n++){
                     console.log($rootScope.parseNotification(fields,notificaciones_parseadas[n]));
-                    cordova.plugins.notification.local.schedule({
+                    if( window.cordova && window.cordova.plugins && window.cordova.plugins.notification ) {
+                      cordova.plugins.notification.local.schedule({
                        id: Math.ceil(Math.random()*100),
                        title: notificaciones_parseadas[n].Descripcion,
                        text: $rootScope.parseNotification(fields,notificaciones_parseadas[n]),
                        at: Date.now(),
                        data: { meetingId:"#123F"+n }
-                    });
+                     });
+                    }
                   }
 
 
 
                   $rootScope.getNoti(last_notif);
-       });
-       
-     }, refresh_time_notification);
+                });
+
+    }, refresh_time_notification);
     };
 
     $rootScope.getNoti(last_notif);
 
     $ionicPlatform.ready(function() {
+ if( window.cordova && window.cordova.plugins && window.cordova.plugins.autoStart ) {
+      cordova.plugins.autoStart.enable();
       
-  cordova.plugins.autoStart.enable();
-      
-
+}
     //enable background mode
+ if( window.cordova && window.cordova.plugins && window.cordova.plugins.backgroundMode ) {
     
     cordova.plugins.backgroundMode.setDefaults({
       title: 'NanoScada Mobile',
@@ -227,10 +230,11 @@ $rootScope.showAlert = function() {
     cordova.plugins.backgroundMode.enable();
     cordova.plugins.backgroundMode.setEnabled(true);
     cordova.plugins.backgroundMode.excludeFromTaskList();
+
    // cordova.plugins.backgroundMode.overrideBackButton();
    // 
    // Disable BACK button on home
-  $ionicPlatform.registerBackButtonAction(function(event) {
+   $ionicPlatform.registerBackButtonAction(function(event) {
     if (true) { // your check here
       cordova.plugins.backgroundMode.moveToBackground();
       // $ionicPopup.confirm({
@@ -245,6 +249,11 @@ $rootScope.showAlert = function() {
       // })
     }
   }, 100);
+
+ }
+
+ 
+   if( window.cordova && window.cordova.plugins && window.cordova.plugins.backgroundMode ) {
     console.log('background:'+cordova.plugins.backgroundMode.isActive());
     //cordova.plugins.backgroundMode.moveToBackground();
 
@@ -260,7 +269,7 @@ $rootScope.showAlert = function() {
     cordova.plugins.backgroundMode.on('deactivate', function() {
       console.log('deactivate');
     });
-
+  }
 
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -272,11 +281,11 @@ $rootScope.showAlert = function() {
     if( window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard ) {
     // Check reference to avoid runtime error on windows phone
     if( window.cordova.plugins.Keyboard.hideKeyboardAccessoryBar ) {
-        cordova.plugins.Keyboard.hideKeyboardAccessoryBar( true );
+      cordova.plugins.Keyboard.hideKeyboardAccessoryBar( true );
     }
     cordova.plugins.Keyboard.disableScroll( true );
-}
-    if (window.StatusBar) { 
+  }
+  if (window.StatusBar) { 
       // org.apache.cordova.statusbar required
       StatusBar.styleDefault();
     }
